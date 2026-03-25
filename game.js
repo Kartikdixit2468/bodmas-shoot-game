@@ -115,10 +115,10 @@ let questions = [];
 let currentQ = null;
 
 const GRAVITY = 0.4;
-const MAX_PULL = 150;
+const MAX_PULL = 160;
 const POWER_MULTIPLIER = 0.18;  // Optimized: enough force to reach targets, but still controlled
 
-let monkey = { x: 100, y: 0, targetX: 100, progressCircle: 0 };
+let monkey = { x: 100, y: 0, targetX: 100, progressCircle: 0, emotion: 'happy' };
 let banana = { x: 0, y: 0 };
 let slingshot = { x: 150, y: 0, isDragging: false };
 let projectile = { x: 150, y: 0, vx: 0, vy: 0, radius: 18, active: false, type: '🥥' };
@@ -130,6 +130,23 @@ let mouse = { x: 0, y: 0, downX: 0, downY: 0 };
 
 const PROGRESS_CIRCLES = 12;
 let progressBars = [];
+
+// Image assets
+let birdImg = null;
+let monkeyHappyImg = null;
+let monkeyCryImg = null;
+
+// Load images
+function loadImages() {
+    birdImg = new Image();
+    birdImg.src = 'images/bird.png';
+    
+    monkeyHappyImg = new Image();
+    monkeyHappyImg.src = 'images/monkey_happy.png';
+    
+    monkeyCryImg = new Image();
+    monkeyCryImg.src = 'images/monkey_cry.png';
+}
 
 /** --- INITIALIZATION --- */
 function resize() {
@@ -201,6 +218,7 @@ async function startGame() {
     monkey.x = 100;
     monkey.targetX = 100;
     monkey.progressCircle = 0;
+    monkey.emotion = 'happy';
     initProgressBar();
     updateUI();
     
@@ -417,7 +435,10 @@ function loadNextQuestion() {
         if (gameState === 'playing' || gameState === 'resolving') {
             questionTimeLeft--;
             updateUI();
-            if (questionTimeLeft <= 0) gameOver("Time's Up!");
+            if (questionTimeLeft <= 0) {
+                monkey.emotion = 'cry';
+                gameOver("Time's Up!");
+            }
         }
     }, 1000);
 
@@ -531,6 +552,7 @@ function handleHit(target) {
     projectile.active = false;
 
     if (target.rawText === currentQ.correctStep) {
+        monkey.emotion = 'happy';
         playCorrect();
         createExplosion(target.x + target.width/2, target.y + target.height/2, ['#fbbf24', '#34d399', '#3b82f6']);
         createFloatingText("+50", target.x, target.y - 20, '#34d399');
@@ -553,6 +575,7 @@ function handleHit(target) {
             solveVisual();
         }
     } else {
+        monkey.emotion = 'cry';
         playWrong();
         createExplosion(target.x + target.width/2, target.y + target.height/2, ['#ef4444', '#991b1b', '#000000']);
         createFloatingText("Oops!", target.x, target.y - 20, '#ef4444');
@@ -564,6 +587,10 @@ function handleHit(target) {
         if (lives <= 0) {
             setTimeout(() => gameOver("No lives left!"), 1000);
         } else {
+            // Change back to happy after a short delay
+            setTimeout(() => {
+                monkey.emotion = 'happy';
+            }, 1500);
             resetProjectile();
         }
     }
@@ -750,8 +777,14 @@ function draw() {
     ctx.font = '50px Arial';
     ctx.fillText('🍌', banana.x, banana.y);
     
+    // Draw monkey
     monkey.x += (monkey.targetX - monkey.x) * 0.1;
-    ctx.fillText('🐵', monkey.x, monkey.y);
+    const monkeyImg = monkey.emotion === 'happy' ? monkeyHappyImg : monkeyCryImg;
+    if (monkeyImg && monkeyImg.complete) {
+        ctx.drawImage(monkeyImg, monkey.x - 25, monkey.y - 25, 100, 100);
+    } else {
+        ctx.fillText('🐵', monkey.x, monkey.y);
+    }
 
     drawSlingshot();
 
@@ -762,11 +795,16 @@ function draw() {
         
         ctx.save();
         ctx.translate(projectile.x, projectile.y);
-        ctx.rotate(projectile.x * 0.05);
-        ctx.font = '30px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(projectile.type, 0, 0);
+        
+        // Draw bird image or fallback to emoji
+        if (birdImg && birdImg.complete) {
+            ctx.drawImage(birdImg, -15, -15, 60, 60);
+        } else {
+            ctx.font = '30px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(projectile.type, 0, 0);
+        }
         ctx.restore();
         
         particles.push({
@@ -849,6 +887,7 @@ function gameLoop() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
+    loadImages();
     updateHighScoreDisplay();
     // Check if gameState is still 'menu' and show main menu
     if (gameState === 'menu') {

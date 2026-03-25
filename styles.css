@@ -132,10 +132,10 @@ button:active {
     }
 }
 
-@keyframes spin {
+/* @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
-}
+} */
 
 .popper {
     animation: pop-up 2s ease-out forwards;
@@ -164,4 +164,349 @@ button:active {
 
 .animate-pulse {
     animation: pulse-text 1.5s ease-in-out infinite;
+}
+
+/* Flexbox utilities */
+.flex {
+    display: flex;
+}
+
+.flex-col {
+    flex-direction: column;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+.gap-4 {
+    gap: 1rem;
+}
+
+/* Custom Screen Styles */
+.screen {
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+}
+
+.screen.hidden {
+    display: none;
+}
+
+/* Main Menu Screen */
+#main-menu {
+    background: linear-gradient(to bottom, #60a5fa, #3b82f6);
+    pointer-events: auto;
+    overflow: hidden;
+}
+
+.menu-content {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+}
+
+.menu-emoji {
+    font-size: 9xl;
+    margin-bottom: 2rem;
+    animation: bounce 2s ease-in-out infinite;
+}
+
+.menu-title {
+    font-size: 3.75rem;
+    font-weight: 900;
+    color: white;
+    margin-bottom: 0.5rem;
+    filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.4));
+    text-align: center;
+}
+
+.menu-subtitle {
+    font-size: 1.5rem;
+    color: white;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.3));
+    text-align: center;
+}
+
+.high-score-box {
+    background-color: #facc15;
+    border: 4px solid #ca8a04;
+    border-radius: 1rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.high-score-text {
+    font-size: 1.875rem;
+    font-weight: 900;
+    color: #78350f;
+}
+
+/* Button Styles */
+.btn {
+    font-family: 'Fredoka One', cursive;
+    letter-spacing: 0.125rem;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    border-radius: 9999px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.btn:hover {
+    transform: scale(1.05);
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn-green {
+    background-color: #22c55e;
+    color: white;
+    font-size: 2rem;
+    padding: 1.5rem 2.5rem;
+    border: 4px solid #16a34a;
+    box-shadow: 0 8px 0 #166534;
+}
+
+.btn-green:active {
+    box-shadow: 0 0 0 #166534;
+    transform: translateY(8px);
+}
+
+.btn-blue {
+    background-color: #3b82f6;
+    color: white;
+    font-size: 1.5rem;
+    padding: 0.75rem 2rem;
+    border: none;
+    box-shadow: 0 6px 0 #1e3a8a;
+}
+
+.btn-blue:active {
+    box-shadow: 0 0 0 #1e3a8a;
+    transform: translateY(4px);
+}
+
+.btn-purple {
+    background-color: #a855f7;
+    color: white;
+    font-size: 1.5rem;
+    padding: 0.75rem 2rem;
+    border: none;
+    box-shadow: 0 6px 0 #6b21a8;
+}
+
+.btn-purple:active {
+    box-shadow: 0 0 0 #6b21a8;
+    transform: translateY(4px);
+}
+
+.btn-green-lg {
+    background-color: #22c55e;
+    color: white;
+    font-size: 1.5rem;
+    padding: 1rem 2.5rem;
+    border: 4px solid #16a34a;
+    box-shadow: 0 8px 0 #166534;
+}
+
+.btn-green-lg:active {
+    box-shadow: 0 0 0 #166534;
+    transform: translateY(8px);
+}
+
+.btn-purple-lg {
+    background-color: #a855f7;
+    color: white;
+    font-size: 1.5rem;
+    padding: 1rem 2.5rem;
+    border: 4px solid #7c3aed;
+    box-shadow: 0 8px 0 #6b21a8;
+}
+
+.btn-purple-lg:active {
+    box-shadow: 0 0 0 #6b21a8;
+    transform: translateY(8px);
+}
+
+/* Instructions Box */
+.instructions-box {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    max-width: 28rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.instructions-box p {
+    font-size: 1.125rem;
+    font-weight: bold;
+    color: #1f2937;
+    margin: 0.5rem 0;
+}
+
+/* Start Screen */
+#start-screen {
+    background-color: rgba(0, 0, 0, 0.6);
+    pointer-events: auto;
+}
+
+.start-screen-box {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 1.875rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 28rem;
+    border: 8px solid #facc15;
+}
+
+.start-screen-box h1 {
+    font-size: 3rem;
+    font-weight: 900;
+    color: #2563eb;
+    margin: 0 0 1rem 0;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.1));
+}
+
+.start-screen-box p {
+    font-size: 1.25rem;
+    color: #374151;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+}
+
+/* Game Over Screen */
+#game-over-screen {
+    background-color: rgba(127, 29, 29, 0.8);
+    pointer-events: auto;
+}
+
+.game-over-box {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 1.875rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 28rem;
+    border: 8px solid #ef4444;
+}
+
+.game-over-box h1 {
+    font-size: 3rem;
+    font-weight: 900;
+    color: #dc2626;
+    margin: 0 0 0.5rem 0;
+}
+
+.game-over-box p {
+    font-size: 1.5rem;
+    color: #1f2937;
+    font-weight: bold;
+    margin: 0.5rem 0;
+}
+
+.game-over-box .reason {
+    font-size: 1.125rem;
+    color: #4b5563;
+    margin-bottom: 1.5rem;
+}
+
+/* Congratulations Screen */
+#congratulations-screen {
+    background: linear-gradient(to bottom, #fcd34d, #4ade80);
+    pointer-events: auto;
+    overflow: hidden;
+}
+
+.congrats-content {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+}
+
+.congrats-emoji {
+    font-size: 9xl;
+    margin-bottom: 1.5rem;
+    animation: bounce 2s ease-in-out infinite;
+}
+
+.congrats-title {
+    font-size: 4.5rem;
+    font-weight: 900;
+    color: white;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.3));
+    text-align: center;
+    animation: pulse-text 1.5s ease-in-out infinite;
+}
+
+.congrats-score {
+    font-size: 1.875rem;
+    color: white;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
+}
+
+.congrats-score-value {
+    color: #fcd34d;
+}
+
+.congrats-high-score-box {
+    background-color: #facc15;
+    border: 4px solid #ca8a04;
+    border-radius: 1rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.congrats-high-score-box p {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #78350f;
+    margin: 0;
+}
+
+.congrats-message {
+    font-size: 1.5rem;
+    color: white;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
+    text-align: center;
+}
+
+.buttons-container {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
 }
