@@ -223,7 +223,7 @@ button:active {
 
 .menu-emoji {
     font-size: 9xl;
-    margin-bottom: 2rem;
+    margin-bottom: -0.8rem;
     animation: bounce 2s ease-in-out infinite;
 }
 
@@ -354,7 +354,8 @@ button:active {
 .instructions-box {
     background-color: rgba(255, 255, 255, 0.9);
     border-radius: 1rem;
-    padding: 1.5rem;
+    margin: 2rem;
+    padding: 0.8rem;
     max-width: 28rem;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     text-align: center;
@@ -436,7 +437,8 @@ button:active {
 
 /* Congratulations Screen */
 #congratulations-screen {
-    background: linear-gradient(to bottom, #fcd34d, #4ade80);
+    /* background: linear-gradient(to bottom, #fcd34d, #4ade80); */
+    background: linear-gradient(to bottom, #1CB5E0, #000851);
     pointer-events: auto;
     overflow: hidden;
 }
