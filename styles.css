@@ -1,0 +1,167 @@
+/* Global Styles */
+body {
+    margin: 0;
+    overflow: hidden;
+    font-family: 'Fredoka One', cursive;
+    touch-action: none;
+    background-color: #87CEEB;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+}
+
+/* Bounce Animation for Menu */
+@keyframes bounce {
+    0%, 100% { 
+        transform: translateY(0); 
+    }
+    50% { 
+        transform: translateY(-30px); 
+    }
+}
+
+.animate-bounce {
+    animation: bounce 2s ease-in-out infinite;
+}
+
+/* Animated Clouds Background */
+.clouds {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 100%;
+    background: transparent url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200"><path fill="%23ffffff" fill-opacity="0.8" d="M100 80c0-16.6 13.4-30 30-30 4.1 0 8 1 11.4 2.6C147.2 38.3 162.2 28 179 28c21.5 0 39.2 16.6 40.9 37.7 2.1-1.1 4.5-1.7 7.1-1.7 8.3 0 15 6.7 15 15s-6.7 15-15 15H100c-11 0-20-9-20-20s9-20 20-20z"/></svg>') repeat-x;
+    background-size: 400px auto;
+    animation: drift 40s linear infinite;
+    z-index: 0;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+@keyframes drift {
+    0% { 
+        transform: translateX(0); 
+    }
+    100% { 
+        transform: translateX(-50%); 
+    }
+}
+
+/* Screen Shake Animation */
+.shake {
+    animation: shake-anim 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake-anim {
+    10%, 90% { 
+        transform: translate3d(-3px, 0, 0); 
+    }
+    20%, 80% { 
+        transform: translate3d(4px, 0, 0); 
+    }
+    30%, 50%, 70% { 
+        transform: translate3d(-6px, 0, 0); 
+    }
+    40%, 60% { 
+        transform: translate3d(6px, 0, 0); 
+    }
+}
+
+/* Expression Block UI */
+.expr-block {
+    display: inline-block;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.expr-highlight {
+    transform: scale(1.3);
+    color: #fbbf24;
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+}
+
+#gameCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+#ui-layer {
+    z-index: 10;
+}
+
+/* Kid-friendly UI Enhancements */
+button {
+    font-family: 'Fredoka One', cursive !important;
+    letter-spacing: 2px;
+    transition: all 0.2s ease !important;
+}
+
+button:hover {
+    transform: scale(1.05) !important;
+}
+
+button:active {
+    transform: scale(0.98) !important;
+}
+
+/* HUD Styling */
+#score, #time, #lives {
+    font-weight: 900;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.85; }
+}
+
+/* Party Celebration Animation */
+@keyframes pop-up {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-300px) scale(0);
+        opacity: 0;
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.popper {
+    animation: pop-up 2s ease-out forwards;
+}
+
+#party-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* Pulse animation for congratulations text */
+@keyframes pulse-text {
+    0%, 100% {
+        text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        transform: scale(1);
+    }
+    50% {
+        text-shadow: 0 0 20px rgba(255,255,255,1);
+        transform: scale(1.05);
+    }
+}
+
+.animate-pulse {
+    animation: pulse-text 1.5s ease-in-out infinite;
+}

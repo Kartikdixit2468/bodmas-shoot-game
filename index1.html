@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Math Slingshot: BODMAS Adventure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Fredoka One', cursive;
+            touch-action: none; /* Prevent scroll on mobile drag */
+            background-color: #87CEEB;
+        }
+
+        /* Animated Clouds Background */
+        .clouds {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: transparent url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200"><path fill="%23ffffff" fill-opacity="0.8" d="M100 80c0-16.6 13.4-30 30-30 4.1 0 8 1 11.4 2.6C147.2 38.3 162.2 28 179 28c21.5 0 39.2 16.6 40.9 37.7 2.1-1.1 4.5-1.7 7.1-1.7 8.3 0 15 6.7 15 15s-6.7 15-15 15H100c-11 0-20-9-20-20s9-20 20-20z"/></svg>') repeat-x;
+            background-size: 400px auto;
+            animation: drift 40s linear infinite;
+            z-index: 0;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        
+        @keyframes drift {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Screen Shake */
+        .shake {
+            animation: shake-anim 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        
+        @keyframes shake-anim {
+            10%, 90% { transform: translate3d(-3px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+            40%, 60% { transform: translate3d(6px, 0, 0); }
+        }
+
+        /* Expression Block UI */
+        .expr-block {
+            display: inline-block;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .expr-highlight {
+            transform: scale(1.3);
+            color: #fbbf24; /* yellow-400 */
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+        }
+
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #ui-layer {
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container" class="relative w-full h-screen overflow-hidden">
+    <div class="clouds"></div>
+    
+    <!-- UI Layer -->
+    <div id="ui-layer" class="absolute inset-0 pointer-events-none p-4 md:p-6 flex flex-col justify-between">
+        
+        <!-- Top HUD -->
+        <div class="flex justify-between items-start text-xl md:text-3xl font-bold text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">
+            <div class="bg-blue-600/80 px-4 py-2 rounded-2xl border-4 border-blue-400">
+                Score: <span id="score">0</span>
+            </div>
+            <div class="bg-purple-600/80 px-4 py-2 rounded-2xl border-4 border-purple-400">
+                ⏱ <span id="time">30</span>s
+            </div>
+            <div class="bg-red-600/80 px-4 py-2 rounded-2xl border-4 border-red-400" id="lives">
+                ❤️❤️❤️
+            </div>
+        </div>
+
+        <!-- Center Expression Display -->
+        <div class="absolute top-24 left-1/2 transform -translate-x-1/2 text-center w-full pointer-events-none">
+            <div class="text-xl md:text-2xl text-yellow-300 font-black mb-2 drop-shadow-md tracking-wider">WHICH STEP FIRST?</div>
+            <div id="expression-display" class="text-4xl md:text-6xl font-extrabold text-white drop-shadow-[0_5px_5px_rgba(0,0,0,0.6)] bg-black/30 inline-block px-8 py-4 rounded-3xl border-4 border-white/40 backdrop-blur-sm">
+                <!-- Expression injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Menus -->
+    <div id="start-screen" class="absolute inset-0 z-50 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center pointer-events-auto transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl text-center max-w-md mx-4 border-8 border-yellow-400 transform hover:scale-105 transition-transform">
+            <h1 class="text-5xl font-black text-blue-600 mb-4 drop-shadow-sm">MATH SLINGSHOT</h1>
+            <p class="text-xl text-gray-700 font-sans font-bold mb-6">Shoot the correct BODMAS step to help the monkey reach the banana! 🐵🍌</p>
+            <button onclick="startGame()" class="bg-green-500 hover:bg-green-400 text-white text-3xl font-bold py-4 px-10 rounded-full shadow-[0_8px_0_#166534] active:shadow-[0_0px_0_#166534] active:translate-y-2 transition-all cursor-pointer">
+                PLAY!
+            </button>
+        </div>
+    </div>
+
+    <div id="game-over-screen" class="absolute inset-0 z-50 bg-red-900/80 backdrop-blur-md flex flex-col items-center justify-center hidden pointer-events-auto">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl text-center max-w-md mx-4 border-8 border-red-500">
+            <h1 class="text-5xl font-black text-red-600 mb-2">GAME OVER!</h1>
+            <p class="text-2xl text-gray-800 font-bold mb-2">Final Score: <span id="final-score" class="text-blue-600">0</span></p>
+            <p id="game-over-reason" class="text-lg text-gray-600 font-sans mb-6">You ran out of lives!</p>
+            <button onclick="resetGame()" class="bg-blue-500 hover:bg-blue-400 text-white text-2xl font-bold py-3 px-8 rounded-full shadow-[0_6px_0_#1e3a8a] active:shadow-[0_0px_0_#1e3a8a] active:translate-y-1 transition-all cursor-pointer">
+                PLAY AGAIN
+            </button>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+</div>
+
+<script>
+    /** --- AUDIO SYSTEM (Web Audio API) --- */
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playTone(freq, type, duration, vol=0.1) {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function playStretch() { playTone(200, 'triangle', 0.1, 0.05); }
+    function playShoot() { 
+        playTone(300, 'sine', 0.2, 0.1); 
+        setTimeout(() => playTone(150, 'triangle', 0.3, 0.1), 50);
+    }
+    function playCorrect() {
+        // Kids cheer substitute (Happy arpeggio)
+        playTone(523.25, 'sine', 0.1, 0.2); // C5
+        setTimeout(() => playTone(659.25, 'sine', 0.1, 0.2), 100); // E5
+        setTimeout(() => playTone(783.99, 'sine', 0.2, 0.2), 200); // G5
+        setTimeout(() => playTone(1046.50, 'sine', 0.4, 0.2), 300); // C6
+    }
+    function playWrong() {
+        // Funny oops sound
+        playTone(250, 'sawtooth', 0.3, 0.2);
+        setTimeout(() => playTone(150, 'sawtooth', 0.4, 0.2), 150);
+    }
+    function playPop() { playTone(800, 'sine', 0.1, 0.1); }
+
+    /** --- GAME STATE & VARIABLES --- */
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    let gameState = 'menu'; // menu, playing, resolving, gameover
+    let score = 0;
+    let lives = 3;
+    let timeLeft = 30;
+    let timerInterval;
+    
+    let questions = [];
+    let currentQ = null;
+    
+    // Physics constants
+    const GRAVITY = 0.4;
+    const MAX_PULL = 120;
+    const POWER_MULTIPLIER = 0.22;
+
+    // Entities
+    let monkey = { x: 100, y: 0, targetX: 100 };
+    let banana = { x: 0, y: 0 };
+    let slingshot = { x: 150, y: 0, isDragging: false };
+    let projectile = { x: 150, y: 0, vx: 0, vy: 0, radius: 18, active: false, type: '🥥' };
+    
+    let targets = [];
+    let particles = [];
+    let floatingTexts = [];
+
+    // Input tracking
+    let mouse = { x: 0, y: 0, downX: 0, downY: 0 };
+
+    /** --- INITIALIZATION --- */
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        slingshot.y = canvas.height - 180;
+        monkey.y = canvas.height - 140;
+        banana.x = canvas.width - 80;
+        banana.y = canvas.height - 160;
+        
+        if (!projectile.active && !slingshot.isDragging) {
+            resetProjectile();
+        }
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Fallback data if PHP fails
+    const fallbackQuestions = [
+        { expression: "8 + 3 * 2", correctStep: "3 * 2", options: ["8 + 3", "3 * 2", "8 + 2"] },
+        { expression: "15 - 10 / 2", correctStep: "10 / 2", options: ["15 - 10", "10 / 2", "15 / 2"] },
+        { expression: "( 4 + 2 ) * 3", correctStep: "( 4 + 2 )", options: ["2 * 3", "( 4 + 2 )", "4 * 3"] },
+        { expression: "20 / 4 + 5", correctStep: "20 / 4", options: ["4 + 5", "20 / 4", "20 + 5"] },
+        { expression: "12 - 3 * 3 + 1", correctStep: "3 * 3", options: ["12 - 3", "3 * 3", "3 + 1"] }
+    ];
+
+    async function loadQuestions() {
+        try {
+            // Try fetching from the requested PHP file
+            const response = await fetch('questions.php');
+            if (!response.ok) throw new Error("PHP not reachable in this environment");
+            questions = await response.json();
+        } catch (e) {
+            console.log("Using fallback questions. PHP fetch failed: " + e.message);
+            questions = [...fallbackQuestions];
+        }
+        // Shuffle questions
+        questions.sort(() => Math.random() - 0.5);
+    }
+
+    async function startGame() {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        await loadQuestions();
+        
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('game-over-screen').classList.add('hidden');
+        
+        score = 0;
+        lives = 3;
+        timeLeft = 35; // 35 seconds to start
+        monkey.x = 100;
+        monkey.targetX = 100;
+        updateUI();
+        
+        gameState = 'playing';
+        loadNextQuestion();
+        
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            if (gameState === 'playing' || gameState === 'resolving') {
+                timeLeft--;
+                updateUI();
+                if (timeLeft <= 0) gameOver("Time's Up!");
+            }
+        }, 1000);
+        
+        gameLoop();
+    }
+
+    function resetGame() {
+        startGame();
+    }
+
+    function gameOver(reason) {
+        gameState = 'gameover';
+        clearInterval(timerInterval);
+        document.getElementById('game-over-screen').classList.remove('hidden');
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('game-over-reason').innerText = reason;
+    }
+
+    function loadNextQuestion() {
+        if (questions.length === 0) {
+            // Reload if empty
+            questions = [...fallbackQuestions].sort(() => Math.random() - 0.5);
+        }
+        currentQ = questions.pop();
+        
+        // Format UI Expression
+        const display = document.getElementById('expression-display');
+        display.innerHTML = currentQ.expression.replace(/\*/g, '×').replace(/\//g, '÷');
+        display.classList.remove('expr-highlight');
+        display.style.color = 'white';
+
+        // Create Targets
+        targets = [];
+        const opts = [...currentQ.options].sort(() => Math.random() - 0.5);
+        const startY = canvas.height / 2 - (opts.length * 40);
+        
+        opts.forEach((opt, index) => {
+            targets.push({
+                x: canvas.width - 250,
+                y: startY + (index * 90),
+                width: 180,
+                height: 60,
+                text: opt.replace(/\*/g, '×').replace(/\//g, '÷'),
+                rawText: opt,
+                baseY: startY + (index * 90),
+                offsetY: Math.random() * Math.PI * 2, // for hovering effect
+                hit: false
+            });
+        });
+
+        resetProjectile();
+        gameState = 'playing';
+    }
+
+    function resetProjectile() {
+        projectile.active = false;
+        projectile.x = slingshot.x;
+        projectile.y = slingshot.y;
+        projectile.vx = 0;
+        projectile.vy = 0;
+    }
+
+    function updateUI() {
+        document.getElementById('score').innerText = score;
+        document.getElementById('time').innerText = timeLeft;
+        document.getElementById('lives').innerText = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
+    }
+
+    /** --- INPUT HANDLING --- */
+    function handleDown(e) {
+        if (gameState !== 'playing') return;
+        const cx = e.touches ? e.touches[0].clientX : e.clientX;
+        const cy = e.touches ? e.touches[0].clientY : e.clientY;
+
+        // Check if close to slingshot
+        const dist = Math.hypot(cx - slingshot.x, cy - slingshot.y);
+        if (dist < 80 && !projectile.active) {
+            slingshot.isDragging = true;
+            mouse.downX = cx;
+            mouse.downY = cy;
+            mouse.x = cx;
+            mouse.y = cy;
+            playStretch();
+        }
+    }
+
+    function handleMove(e) {
+        if (!slingshot.isDragging) return;
+        mouse.x = e.touches ? e.touches[0].clientX : e.clientX;
+        mouse.y = e.touches ? e.touches[0].clientY : e.clientY;
+    }
+
+    function handleUp(e) {
+        if (slingshot.isDragging) {
+            slingshot.isDragging = false;
+            
+            // Calculate velocity based on pull
+            let dx = slingshot.x - mouse.x;
+            let dy = slingshot.y - mouse.y;
+            
+            // Cap pull distance
+            const dist = Math.hypot(dx, dy);
+            if (dist > MAX_PULL) {
+                dx = (dx / dist) * MAX_PULL;
+                dy = (dy / dist) * MAX_PULL;
+            }
+
+            // Only shoot if pulled enough
+            if (dist > 20) {
+                projectile.active = true;
+                projectile.x = slingshot.x - dx; // Start at pulled pos
+                projectile.y = slingshot.y - dy;
+                projectile.vx = dx * POWER_MULTIPLIER;
+                projectile.vy = dy * POWER_MULTIPLIER;
+                playShoot();
+            } else {
+                resetProjectile();
+            }
+        }
+    }
+
+    window.addEventListener('mousedown', handleDown);
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleUp);
+    window.addEventListener('touchstart', handleDown, {passive: false});
+    window.addEventListener('touchmove', handleMove, {passive: false});
+    window.addEventListener('touchend', handleUp);
+
+    /** --- LOGIC & PHYSICS --- */
+    function checkCollisions() {
+        if (!projectile.active) return;
+
+        // Bounds check (ground/offscreen)
+        if (projectile.y > canvas.height || projectile.x > canvas.width) {
+            resetProjectile();
+            return;
+        }
+
+        // Target collision
+        for (let t of targets) {
+            if (!t.hit) {
+                // Simple Circle-AABB collision
+                let testX = projectile.x;
+                let testY = projectile.y;
+
+                if (projectile.x < t.x) testX = t.x;
+                else if (projectile.x > t.x + t.width) testX = t.x + t.width;
+                if (projectile.y < t.y) testY = t.y;
+                else if (projectile.y > t.y + t.height) testY = t.y + t.height;
+
+                let distX = projectile.x - testX;
+                let distY = projectile.y - testY;
+                let distance = Math.sqrt((distX*distX) + (distY*distY));
+
+                if (distance <= projectile.radius) {
+                    handleHit(t);
+                    break;
+                }
+            }
+        }
+    }
+
+    function handleHit(target) {
+        target.hit = true;
+        projectile.active = false;
+
+        if (target.rawText === currentQ.correctStep) {
+            // CORRECT!
+            playCorrect();
+            createExplosion(target.x + target.width/2, target.y + target.height/2, ['#fbbf24', '#34d399', '#3b82f6']);
+            createFloatingText("+50", target.x, target.y - 20, '#34d399');
+            
+            score += 50;
+            timeLeft += 3; // Bonus time
+            monkey.targetX += (canvas.width - 350) / 10; // Move closer
+            
+            solveVisual();
+        } else {
+            // WRONG!
+            playWrong();
+            createExplosion(target.x + target.width/2, target.y + target.height/2, ['#ef4444', '#991b1b', '#000000']);
+            createFloatingText("Oops!", target.x, target.y - 20, '#ef4444');
+            triggerShake();
+            
+            lives--;
+            updateUI();
+            
+            if (lives <= 0) {
+                setTimeout(() => gameOver("No lives left!"), 1000);
+            } else {
+                resetProjectile();
+            }
+        }
+    }
+
+    function solveVisual() {
+        gameState = 'resolving';
+        
+        // Evaluate the correct math step safely
+        let result = "";
+        try {
+            // Only safe because we strictly control the JSON math strings
+            let cleanMath = currentQ.correctStep.replace(/[()]/g, '');
+            result = eval(cleanMath);
+        } catch (e) {
+            result = "??";
+        }
+
+        const display = document.getElementById('expression-display');
+        
+        // Highlight the part being solved
+        const displayStep = currentQ.correctStep.replace(/\*/g, '×').replace(/\//g, '÷');
+        const regex = new RegExp(displayStep.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+        
+        let newHtml = currentQ.expression.replace(/\*/g, '×').replace(/\//g, '÷')
+            .replace(regex, `<span class="expr-block expr-highlight">${displayStep}</span>`);
+        
+        display.innerHTML = newHtml;
+
+        // Sequence: Highlight -> Change to Result -> Load Next
+        setTimeout(() => {
+            playPop();
+            newHtml = currentQ.expression.replace(/\*/g, '×').replace(/\//g, '÷')
+                .replace(regex, `<span class="text-green-400 font-black">${result}</span>`);
+            display.innerHTML = newHtml;
+            
+            setTimeout(() => {
+                loadNextQuestion();
+            }, 1200);
+        }, 1000);
+    }
+
+    function triggerShake() {
+        const container = document.getElementById('game-container');
+        container.classList.remove('shake');
+        void container.offsetWidth; // trigger reflow
+        container.classList.add('shake');
+    }
+
+    function createExplosion(x, y, colors) {
+        for(let i=0; i<30; i++) {
+            particles.push({
+                x: x, y: y,
+                vx: (Math.random() - 0.5) * 15,
+                vy: (Math.random() - 0.5) * 15,
+                life: 1.0,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                size: Math.random() * 8 + 4
+            });
+        }
+    }
+
+    function createFloatingText(txt, x, y, color) {
+        floatingTexts.push({
+            text: txt, x: x, y: y, life: 1.0, color: color
+        });
+    }
+
+    /** --- RENDERING --- */
+    function drawSlingshot() {
+        // Wooden stand
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(slingshot.x - 10, slingshot.y, 20, canvas.height - slingshot.y);
+        
+        // Prongs
+        ctx.beginPath();
+        ctx.moveTo(slingshot.x, slingshot.y);
+        ctx.lineTo(slingshot.x - 25, slingshot.y - 40);
+        ctx.lineTo(slingshot.x - 15, slingshot.y - 40);
+        ctx.lineTo(slingshot.x + 5, slingshot.y);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(slingshot.x, slingshot.y);
+        ctx.lineTo(slingshot.x + 25, slingshot.y - 40);
+        ctx.lineTo(slingshot.x + 15, slingshot.y - 40);
+        ctx.lineTo(slingshot.x - 5, slingshot.y);
+        ctx.fill();
+
+        // Calculate pull position
+        let px = slingshot.x;
+        let py = slingshot.y - 20;
+
+        if (slingshot.isDragging) {
+            let dx = slingshot.x - mouse.x;
+            let dy = slingshot.y - mouse.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist > MAX_PULL) {
+                dx = (dx / dist) * MAX_PULL;
+                dy = (dy / dist) * MAX_PULL;
+            }
+            px = slingshot.x - dx;
+            py = slingshot.y - dy;
+
+            // Draw Aim Trajectory
+            ctx.beginPath();
+            ctx.setLineDash([10, 10]);
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            let tx = px;
+            let ty = py;
+            let tvx = dx * POWER_MULTIPLIER;
+            let tvy = dy * POWER_MULTIPLIER;
+            ctx.moveTo(tx, ty);
+            for(let i=0; i<25; i++) {
+                tx += tvx;
+                ty += tvy;
+                tvy += GRAVITY;
+                ctx.lineTo(tx, ty);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // Draw Rubber bands
+        ctx.strokeStyle = '#381c00';
+        ctx.lineWidth = 6;
+        
+        // Back band
+        ctx.beginPath();
+        ctx.moveTo(slingshot.x - 20, slingshot.y - 40);
+        ctx.lineTo(px, py);
+        ctx.stroke();
+
+        // Draw projectile in pouch if aiming, else loose
+        if (!projectile.active) {
+            ctx.font = '30px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(projectile.type, px, py);
+        }
+
+        // Front band
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(slingshot.x + 20, slingshot.y - 40);
+        ctx.stroke();
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Ground
+        ctx.fillStyle = '#4ade80'; // Grass green
+        ctx.beginPath();
+        ctx.moveTo(0, canvas.height - 100);
+        ctx.quadraticCurveTo(canvas.width/2, canvas.height - 120, canvas.width, canvas.height - 80);
+        ctx.lineTo(canvas.width, canvas.height);
+        ctx.lineTo(0, canvas.height);
+        ctx.fill();
+
+        // Platform right
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(banana.x - 20, banana.y + 30, 80, canvas.height);
+        
+        // Monkey & Banana
+        ctx.font = '50px Arial';
+        ctx.fillText('🍌', banana.x, banana.y);
+        
+        // Smooth monkey movement
+        monkey.x += (monkey.targetX - monkey.x) * 0.1;
+        ctx.fillText('🐵', monkey.x, monkey.y);
+
+        drawSlingshot();
+
+        // Projectile flying
+        if (projectile.active) {
+            projectile.vy += GRAVITY;
+            projectile.x += projectile.vx;
+            projectile.y += projectile.vy;
+            
+            ctx.save();
+            ctx.translate(projectile.x, projectile.y);
+            ctx.rotate(projectile.x * 0.05); // Spin
+            ctx.font = '30px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(projectile.type, 0, 0);
+            ctx.restore();
+            
+            // Tail effect
+            particles.push({
+                x: projectile.x, y: projectile.y,
+                vx: 0, vy: 0, life: 0.5, color: '#ffffff', size: 4
+            });
+        }
+
+        // Targets
+        targets.forEach(t => {
+            if (t.hit) return;
+            
+            // Hover animation
+            t.offsetY += 0.05;
+            t.y = t.baseY + Math.sin(t.offsetY) * 10;
+
+            // Box
+            ctx.fillStyle = '#3b82f6'; // blue-500
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.roundRect(t.x, t.y, t.width, t.height, 15);
+            ctx.fill();
+            ctx.stroke();
+
+            // Highlight border on hover bottom
+            ctx.fillStyle = '#2563eb'; // darker blue for 3D effect
+            ctx.beginPath();
+            ctx.roundRect(t.x, t.y + t.height - 10, t.width, 10, {bl: 15, br: 15});
+            ctx.fill();
+
+            // Text
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 24px "Fredoka One", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(t.text, t.x + t.width/2, t.y + t.height/2);
+        });
+
+        // Particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += GRAVITY * 0.5;
+            p.life -= 0.02;
+            
+            ctx.globalAlpha = Math.max(0, p.life);
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+            ctx.fill();
+            
+            if (p.life <= 0) particles.splice(i, 1);
+        }
+        ctx.globalAlpha = 1.0;
+
+        // Floating Texts
+        for (let i = floatingTexts.length - 1; i >= 0; i--) {
+            let ft = floatingTexts[i];
+            ft.y -= 1;
+            ft.life -= 0.015;
+            
+            ctx.globalAlpha = Math.max(0, ft.life);
+            ctx.fillStyle = ft.color;
+            ctx.font = 'bold 36px "Fredoka One"';
+            ctx.textAlign = 'center';
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 4;
+            ctx.strokeText(ft.text, ft.x, ft.y);
+            ctx.fillText(ft.text, ft.x, ft.y);
+            
+            if (ft.life <= 0) floatingTexts.splice(i, 1);
+        }
+        ctx.globalAlpha = 1.0;
+
+        checkCollisions();
+    }
+
+    function gameLoop() {
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+</script>
+
+</body>
+</html>
